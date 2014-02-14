@@ -77,7 +77,6 @@ class IeoEnc(object):
 
     def __init__(self, nodename):
         logger.debug('called for node %s' % nodename)
-        self.nodename = nodename
         domainParts = reversed(nodename.split('.'))
         
         self.api = XmlRpcApiServer(remote['xmlrpc'])
@@ -93,7 +92,7 @@ class IeoEnc(object):
                 continue
             for key in 'classes', 'parameters', 'environment':
                 if data.get(key):
-                    self.data[key].update((k,v or {}) for (k,v) in data[key].iteritems())
+                    self.data[key].update((k,v or {}) for k,v in data[key].iteritems())
         #FIXME: remove
         logger.debug(self.data)
 
@@ -113,7 +112,7 @@ class IeoEnc(object):
                         break
 
     def __repr__(self):
-        data = dict((k,dict(v)) for k,v in self.data.items())
+        data = dict((k,dict(v)) for k,v in self.data.iteritems())
         return yaml.dump(data,
                          default_flow_style=False,
                          explicit_start=True,
