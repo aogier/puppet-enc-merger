@@ -2,6 +2,7 @@ import xmlrpclib
 import yaml
 import re
 import collections
+import sys
 plugins = []
 
 import logging
@@ -54,7 +55,10 @@ class IeoEnc(object):
                 for plugin in plugins:
                     if plugin.__puppet_class__ == _class:
                         logger.debug('... found %s' % plugin)
-                        classData, parameters = plugin(nodename, self.data).execute()
+                        try:
+                            classData, parameters = plugin(nodename, self.data).execute()
+                        except:
+                            continue
                         if isinstance(self.data['classes'][_class], dict):
                             self.data['classes'][_class].update(classData or {})
                         else:
@@ -69,3 +73,8 @@ class IeoEnc(object):
                          default_flow_style=False,
                          explicit_start=True,
                          ).replace('null', '')
+
+
+def main():
+    enc = IeoEnc(sys.argv[1])
+    print enc.__repr__()
