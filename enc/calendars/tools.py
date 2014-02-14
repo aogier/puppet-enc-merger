@@ -1,15 +1,17 @@
 '''
+Created on 14/feb/2014
+
+@author: oggei
+'''
+'''
 Created on 13/feb/2014
 
 @author: oggei
 '''
-from enc import session
-from enc.models import User, Calendar
+from enc.calendars import session, calendars_uuid
+from enc.calendars.models import User, Calendar
 import uuid
-import yaml
 
-calendars_uuid = uuid.UUID('9eef4d4b-7b49-4364-85fe-84337e81af86')
-hiera_root = 'ieo::classes::calendar::client::calendars'
 
 def getCalendars(user):
     
@@ -49,3 +51,12 @@ def getThunderbirdConfig(user):
                        str(collection.dav_name)))] = parm
     
     return out
+
+if __name__ == '__main__':
+    for user in ['aogier', 'grognoni', 'msalvato', 'vviscard']:
+        print 'doing', user
+        hiera = getThunderbirdConfig(user)
+        print hiera
+#         cals = getCalendars(user)
+#         for cal in cals:
+#             print 'calendar %s: %s' % (cal, cal.dav_name)

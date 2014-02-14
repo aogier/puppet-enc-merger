@@ -7,7 +7,7 @@ Created on 13/feb/2014
 from sqlalchemy.sql.schema import Table, Column, ForeignKey
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.sqltypes import Integer
-from enc import Base, engine
+from enc.calendars import Base, engine
 
 # many to many association tables
 grants_table = Table('grants', Base.metadata,
