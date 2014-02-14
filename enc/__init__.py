@@ -34,12 +34,15 @@ class ApiServer(object):
         '''
         def __new__(cls, name, bases, _dict):
             _type = type.__new__(cls, name, bases, _dict)
-#             logger.debug('registering file format: %s' % name)
-            apiservers.append(_type)
+            if name != 'ApiServer':
+                logger.debug('registering api server: %s' % name)
+                apiservers.append(_type)
             return _type
 
     def __init__(self, uri):
         self.uri = uri
+        self.logger = logging.getLogger('%s api server' % self.__type__)
+        self.logger.setLevel(logging.DEBUG)
     
     def getNode(self, uri):
         raise Exception, 'not implemented'
@@ -50,55 +53,47 @@ class XmlRpcApiServer(ApiServer):
     #fixme: it's a conf
     __prefix__ = 'PuppetClasses'
     
+    regex = re.compile(r'.*{{{\|(?P<yaml>.*)\|}}}.*')
+    
     def __init__(self, uri):
         super(XmlRpcApiServer, self).__init__(uri)
         self.xmlrpc = xmlrpclib.ServerProxy(self.uri)
     
     def getNode(self, uri):
-        def extract(s):
-            string = s.replace('\n', '|')
-            regex = re.compile(r'.*{{{\|(?P<yaml>.*)\|}}}.*')
-            match = regex.match(string)
-            if match:
-                out = match.groupdict()['yaml']
-                return out.replace('|', '\n')
-            return ''
-        target = self.uri + uri
-        print 'getting', target
-        node = self.xmlrpc.wiki.getPage(self.__prefix__ + uri)
-        return yaml.load(extract(node)) or {}
-        
-        
+        target = self.__prefix__ + uri
+        self.logger.debug('getting %s' % target)
+        node = self.xmlrpc.wiki.getPage(target)
+        string = node.replace('\n', '|')
+        match = self.regex.match(string)
+        if match:
+            group = match.groupdict()['yaml']
+            out = group.replace('|', '\n')
+            return yaml.load(out)
+        return {}
 
 class IeoEnc(object):
 
-    data = collections.defaultdict(dict)
+    data = collections.defaultdict(collections.defaultdict)
 
     def __init__(self, nodename):
         logger.debug('called for node %s' % nodename)
         self.nodename = nodename
         domainParts = reversed(nodename.split('.'))
         
-#         self.xmlrpc = xmlrpclib.ServerProxy(xmlrpc_uri)
         self.api = XmlRpcApiServer(remote['xmlrpc'])
         
-#         uri = wikiRoot
         uri = ''
         for domainPart in domainParts:
             uri = '/'.join([uri, domainPart])  
             logger.debug('merging classes from uri "%s"' % uri)
-#             try:
-                
-#                 page = self.xmlrpc.wiki.getPage(uri)
-            data = self.api.getNode(uri)
-                
-#             except:
-#                 print 'except !'
-#                 continue
-#             data = yaml.load(extract(page))
+            try:
+                data = self.api.getNode(uri)
+            except:
+                logger.warn('api failed on "%s"' % uri)
+                continue
             for key in 'classes', 'parameters', 'environment':
                 if data.get(key):
-                    self.data[key].update(data[key])
+                    self.data[key].update((k,v or {}) for (k,v) in data[key].iteritems())
         #FIXME: remove
         logger.debug(self.data)
 
@@ -113,18 +108,13 @@ class IeoEnc(object):
                             classData, parameters = plugin(nodename, self.data).execute()
                         except:
                             continue
-                        if isinstance(self.data['classes'][_class], dict):
-                            self.data['classes'][_class].update(classData or {})
-                        else:
-                            self.data['classes'][_class] = classData
-                        if self.data['parameters']:
-                            self.data['parameters'].update(parameters or {})
-                        else:
-                            self.data['parameters'] = parameters
+                        self.data['classes'][_class].update(classData)
+                        self.data['parameters'].update(parameters)
                         break
 
     def __repr__(self):
-        return yaml.dump(dict(self.data),
+        data = dict((k,dict(v)) for k,v in self.data.items())
+        return yaml.dump(data,
                          default_flow_style=False,
                          explicit_start=True,
                          ).replace('null', '')
@@ -132,4 +122,5 @@ class IeoEnc(object):
 
 def main():
     enc = IeoEnc(sys.argv[1])
-    print enc.__repr__()
+#     enc = IeoEnc('rognoni.segreterie')
+    print enc

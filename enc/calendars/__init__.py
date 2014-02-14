@@ -65,7 +65,8 @@ class CalendarPlugin(object):
                             })
             out[wrap(uuid.uuid5(calendars_uuid,
                                 str(collection.dav_name)))] = parm
-        return {'calendars': out}, None
+        #FIXME: implement
+        return {'calendars': out}, {}
 
 
     def getCalendars(self, user):
