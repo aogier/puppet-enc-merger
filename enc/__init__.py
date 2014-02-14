@@ -1,5 +1,7 @@
 import xmlrpclib
 import yaml
+import re
+import collections
 plugins = []
 
 import logging
@@ -17,9 +19,17 @@ from enc.calendars import CalendarPlugin
 
 class IeoEnc(object):
 
-    data = {}
+    data = collections.defaultdict(dict)
 
     def __init__(self, nodename):
+        def extract(s):
+            string = s.replace('\n', '|')
+            regex = re.compile(r'.*{{{\|(?P<yaml>.*)\|}}}.*')
+            match = regex.match(string)
+            if match:
+                out = match.groupdict()['yaml']
+                return out.replace('|', '\n')
+            return ''
         logger.debug('called for node %s' % nodename)
         self.nodename = nodename
         domainParts = reversed(nodename.split('.'))
@@ -28,32 +38,34 @@ class IeoEnc(object):
         for domainPart in domainParts:
             uri = '/'.join([uri, domainPart])  
             logger.debug('merging classes from uri "%s"' % uri)
-            page = yaml.load(self.xmlrpc.wiki.getPage(uri))
+            try:
+                page = self.xmlrpc.wiki.getPage(uri)
+            except:
+                continue
+            data = yaml.load(extract(page))
             for key in 'classes', 'parameters', 'environment':
-                if page.get(key):
-                    if isinstance(self.data.get(key, None), dict):
-                        self.data[key].update(page[key])
-                    else:
-                        self.data[key] = page[key]
+                if data.get(key):
+                    self.data[key].update(data[key])
         logger.debug(self.data)
 
-        for _class in self.data['classes']:
-            logger.debug('searching plugin for class %s...' % _class)
-            for c in plugins:
-                if c.__puppet_class__ == _class:
-                    logger.debug('... found %s' % c)
-                    classData, parameters = c(nodename, self.data).execute()
-                    if isinstance(self.data['classes'][_class], dict):
-                        self.data['classes'][_class].update(classData)
-                    else:
-                        self.data['classes'][_class] = classData
-                    if self.data['parameters']:
-                        self.data['parameters'].update(parameters or {})
-                    else:
-                        self.data['parameters'] = parameters
+        if self.data.get('classes'):
+            for _class in self.data['classes']:
+                logger.debug('searching plugin for class %s ...' % _class)
+                for plugin in plugins:
+                    if plugin.__puppet_class__ == _class:
+                        logger.debug('... found %s' % plugin)
+                        classData, parameters = plugin(nodename, self.data).execute()
+                        if isinstance(self.data['classes'][_class], dict):
+                            self.data['classes'][_class].update(classData or {})
+                        else:
+                            self.data['classes'][_class] = classData
+                        if self.data['parameters']:
+                            self.data['parameters'].update(parameters or {})
+                        else:
+                            self.data['parameters'] = parameters
 
     def __repr__(self):
-        return yaml.dump(self.data,
+        return yaml.dump(dict(self.data),
                          default_flow_style=False,
                          explicit_start=True,
                          ).replace('null', '')

@@ -44,16 +44,14 @@ class CalendarPlugin(object):
         self.data = data
 
     def execute(self):
-        
-        user = self.data['parameters']['ieo_username']
-        
+        #FIXME: remove
         def wrap(s):
             if not isinstance(s, str):
                 s = str(s)
             return s.join(["'"]*2)
         
+        user = self.data['parameters']['ieo_username']
         collections = self.getCalendars(user)
-        
         defaults = ((
                     ('calendar-main-in-composite', True),
                     ('cache-enabled', False),
@@ -66,21 +64,32 @@ class CalendarPlugin(object):
                          'uri': wrap(uriPrefix % collection.dav_name)
                             })
             out[wrap(uuid.uuid5(calendars_uuid,
-                           str(collection.dav_name)))] = parm
-        
+                                str(collection.dav_name)))] = parm
         return {'calendars': out}, None
 
 
     def getCalendars(self, user):
     
-        user = session.query(User).filter(User.username == user).one()
+        # query calendar DB for User object whose username is :user:
+        query = session.query(User).filter(User.username == user)
+        # one() fail if len(result) != 1
+        user = query.one()
+        #              for every item in
         collections = [xx for xx in
+        #              flattened array of group grants [[group1_grants], [group2_grants], ...]
                        reduce(lambda x,y: x+y,
                               [x.collections for x in user.principal.groups])
+        #              if granted object is a Calendar
                        if isinstance(xx, Calendar)]
-        collections += [x for x 
-                        in user.collections + user.principal.collections 
+        #               for every item in
+        collections += [x for x
+        #               user + dav_user collections
+                        in user.collections + user.principal.collections
+        #               if granted object is a Calendar
                         if isinstance(x, Calendar)] 
+        # return a set
         return set(collections)
 
-from enc.calendars.models import User, Calendar        
+# avoid circular dependencies
+from enc.calendars.models import User, Calendar
+        
