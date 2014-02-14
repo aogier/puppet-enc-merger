@@ -55,15 +55,6 @@ class XmlRpcApiServer(ApiServer):
         self.xmlrpc = xmlrpclib.ServerProxy(self.uri)
     
     def getNode(self, uri):
-        target = self.uri + uri
-        print 'getting', target
-        return self.xmlrpc.wiki.getPage(self.__prefix__ + uri)
-
-class IeoEnc(object):
-
-    data = collections.defaultdict(dict)
-
-    def __init__(self, nodename):
         def extract(s):
             string = s.replace('\n', '|')
             regex = re.compile(r'.*{{{\|(?P<yaml>.*)\|}}}.*')
@@ -72,6 +63,18 @@ class IeoEnc(object):
                 out = match.groupdict()['yaml']
                 return out.replace('|', '\n')
             return ''
+        target = self.uri + uri
+        print 'getting', target
+        node = self.xmlrpc.wiki.getPage(self.__prefix__ + uri)
+        return yaml.load(extract(node)) or {}
+        
+        
+
+class IeoEnc(object):
+
+    data = collections.defaultdict(dict)
+
+    def __init__(self, nodename):
         logger.debug('called for node %s' % nodename)
         self.nodename = nodename
         domainParts = reversed(nodename.split('.'))
@@ -87,12 +90,12 @@ class IeoEnc(object):
 #             try:
                 
 #                 page = self.xmlrpc.wiki.getPage(uri)
-            page = self.api.getNode(uri)
+            data = self.api.getNode(uri)
                 
 #             except:
 #                 print 'except !'
 #                 continue
-            data = yaml.load(extract(page))
+#             data = yaml.load(extract(page))
             for key in 'classes', 'parameters', 'environment':
                 if data.get(key):
                     self.data[key].update(data[key])
