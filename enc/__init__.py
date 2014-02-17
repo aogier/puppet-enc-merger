@@ -8,6 +8,7 @@ from stevedore import driver
 import yaml
 
 from config import config
+import urlparse
 
 # plugins = []
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -57,7 +58,10 @@ class XmlRpcApiServer(ApiServer):
     
     def __init__(self, uri):
         super(XmlRpcApiServer, self).__init__(uri)
-        logger.debug('called with uri: %s' % uri)
+        parsedUri = urlparse.urlparse(uri)
+        safeUri = '%s://%s:***@%s/%s' % (parsedUri.scheme, parsedUri. username,
+                                         parsedUri.hostname, parsedUri.path)
+        logger.debug('called with uri: %s' % safeUri)
         self.xmlrpc = xmlrpclib.ServerProxy(self.uri)
     
     def getNode(self, uri):
@@ -93,9 +97,7 @@ class IeoEnc(object):
             for key in 'classes', 'parameters', 'environment':
                 if data.get(key):
                     self.data[key].update((k,v or {}) for k,v in data[key].iteritems())
-        #FIXME: remove
-        logger.debug(self.data)
-
+#         logger.debug(self.data)
         if self.data.get('classes'):
             
             for _class in self.data['classes']:
@@ -110,7 +112,7 @@ class IeoEnc(object):
                 # driver not found
                 except RuntimeError:
                     continue
-                logger.debug('executing plugin %s ...' % plugin)
+                logger.debug('executing plugin %s ...' % plugin.driver)
                 try:
                     classData, parameters = plugin.driver.execute()
                 except:
