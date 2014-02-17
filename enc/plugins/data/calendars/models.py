@@ -15,7 +15,7 @@ from sqlalchemy.sql.sqltypes import Integer
 from enc import config
 db_uri = config.get('ieo::classes::calendar::client', 'db_uri')
 
-# from enc.plugins.calendars import Base, engine
+# from enc.plugins.data.calendars import Base, engine
 engine = create_engine(db_uri)
 
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 Created on 17/feb/2014
 
@@ -53,7 +54,10 @@ setup(
                                       'stub = enc:main',
                                       ],
                   'eu.ieo.puppet.classes': [
-                                            'ieo::classes::calendar::client = enc.plugins.calendars:CalendarPlugin'
+                                            'ieo::classes::calendar::client = enc.plugins.data.calendars:CalendarPlugin'
+                                            ],
+                  'eu.ieo.puppet.facts': [
+                                            'ieo::facts::trac = enc.plugins.facts.trac:TracFactsPlugin'
                                             ],
     },
 

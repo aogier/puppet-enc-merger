@@ -1,21 +1,14 @@
 import uuid
 
-from sqlalchemy.engine import create_engine
-from sqlalchemy.ext.declarative.api import declarative_base
-from sqlalchemy.orm import relationship
-from sqlalchemy.orm.session import sessionmaker
-from sqlalchemy.sql.schema import Table, Column, ForeignKey
-from sqlalchemy.sql.sqltypes import Integer
-
-from enc.plugins import EncPlugin
-from enc.plugins.calendars.models import User, Calendar, session
+from enc.plugins.data import DataPlugin
+from enc.plugins.data.calendars.models import User, Calendar, session
 
 
 # TODO: config ?
 calendars_uuid = uuid.UUID('9eef4d4b-7b49-4364-85fe-84337e81af86')
 uriPrefix = 'https://calendars.ieo.eu/caldav.php/%s'
 
-class CalendarPlugin(EncPlugin):
+class CalendarPlugin(DataPlugin):
     
 #     __puppet_class__ = 'ieo::classes::calendar::client' 
     

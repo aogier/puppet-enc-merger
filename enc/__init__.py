@@ -7,7 +7,7 @@ import xmlrpclib
 from stevedore import driver
 import yaml
 
-from config import config
+
 import urlparse
 
 # plugins = []
@@ -16,66 +16,9 @@ logging.basicConfig(format=FORMAT)
 logger = logging.getLogger('enc')
 logger.setLevel(logging.DEBUG)
 
+from config import config
+
 wikiRoot = 'PuppetClasses'
-
-# plugin registration
-# from enc.plugins.calendars import CalendarPlugin
-
-apiservers = []
-
-class ApiServer(object):
-
-    class __metaclass__(type):
-        '''
-        Maintain couple of global plugin registries.
-        
-        If called whitin Mafreader class creation, then update global
-        _fileFormats registry.
-        If called whitin a subclass creation, then update local
-        _decoders registry.
-        '''
-        def __new__(cls, name, bases, _dict):
-            _type = type.__new__(cls, name, bases, _dict)
-            if name != 'ApiServer':
-                logger.debug('registering api server: %s' % name)
-                apiservers.append(_type)
-            return _type
-
-    def __init__(self, uri):
-        self.uri = uri
-        self.logger = logger.getChild('api (%s)' % self.__type__)
-    
-    def getNode(self, uri):
-        raise Exception, 'not implemented'
-
-class XmlRpcApiServer(ApiServer):
-    
-    __type__ = 'xmlrpc'
-    #fixme: it's a conf
-    __prefix__ = 'PuppetClasses'
-    
-    regex = re.compile(r'.*{{{\|(?P<yaml>.*)\|}}}.*')
-    
-    def __init__(self, uri):
-        super(XmlRpcApiServer, self).__init__(uri)
-        parsedUri = urlparse.urlparse(uri)
-        safeUri = '%s://%s:***@%s/%s' % (parsedUri.scheme, parsedUri. username,
-                                         parsedUri.hostname, parsedUri.path)
-        logger.debug('called with uri: %s' % safeUri)
-        self.xmlrpc = xmlrpclib.ServerProxy(self.uri)
-    
-    def getNode(self, uri):
-        target = self.__prefix__ + uri
-        self.logger.debug('getting %s' % target)
-        node = self.xmlrpc.wiki.getPage(target)
-        string = node.replace('\n', '|')
-        match = self.regex.match(string)
-        if match:
-            group = match.groupdict()['yaml']
-            out = group.replace('|', '\n')
-            return yaml.load(out)
-        return {}
-
 
 class IeoEnc(object):
 
@@ -83,17 +26,21 @@ class IeoEnc(object):
 
     def __init__(self, nodename):
         logger.debug('called for node %s' % nodename)
-        domainParts = reversed(nodename.split('.'))
-        self.api = XmlRpcApiServer(config.get('main', 'start'))        
-        uri = ''
-        for domainPart in domainParts:
-            uri = '/'.join([uri, domainPart])  
-            logger.debug('merging classes from uri "%s"' % uri)
+#         domainParts = reversed(nodename.split('.'))
+        
+        for factsPlugin in config.get('main', 'facts').split(','):
+            logger.debug ('loading facts from %s' % factsPlugin)
             try:
-                data = self.api.getNode(uri)
-            except:
-                logger.warn('api failed on "%s"' % uri)
-                continue
+                facts = driver.DriverManager(
+                                             namespace = 'eu.ieo.puppet.facts',
+                                             name = factsPlugin,
+                                             invoke_on_load=True,
+                                             invoke_args=([nodename]),
+                                             )
+            except (RuntimeError, ), e:
+                raise
+            
+            data = facts.driver.execute()
             for key in 'classes', 'parameters', 'environment':
                 if data.get(key):
                     self.data[key].update((k,v or {}) for k,v in data[key].iteritems())
