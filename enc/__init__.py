@@ -3,9 +3,10 @@ import yaml
 import re
 import collections
 import sys
-plugins = []
+# plugins = []
 
 import logging
+from stevedore import driver
 
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -17,7 +18,7 @@ from local import xmlrpc_uri, remote
 wikiRoot = 'PuppetClasses'
 
 # plugin registration
-from enc.calendars import CalendarPlugin
+from enc.plugins.calendars import CalendarPlugin
 
 apiservers = []
 
@@ -71,6 +72,7 @@ class XmlRpcApiServer(ApiServer):
             return yaml.load(out)
         return {}
 
+
 class IeoEnc(object):
 
     data = collections.defaultdict(collections.defaultdict)
@@ -97,19 +99,23 @@ class IeoEnc(object):
         logger.debug(self.data)
 
         if self.data.get('classes'):
+            
             for _class in self.data['classes']:
                 logger.debug('searching plugin for class %s ...' % _class)
-                for plugin in plugins:
-                    logger.debug('trying %s' % plugin)
-                    if plugin.__puppet_class__ == _class:
-                        logger.debug('... found %s' % plugin)
-                        try:
-                            classData, parameters = plugin(nodename, self.data).execute()
-                        except:
-                            continue
-                        self.data['classes'][_class].update(classData)
-                        self.data['parameters'].update(parameters)
-                        break
+                try:
+                    plugin = driver.DriverManager(
+                                                  namespace = 'eu.ieo.puppet.classes',
+                                                  name = _class,
+                                                  invoke_on_load=True,
+                                                  invoke_args=(nodename, self.data),
+                                                  )
+                # driver not found
+                except RuntimeError:
+                    continue
+                logger.debug('executing plugin %s ...' % plugin)
+                classData, parameters = plugin.driver.execute()
+                self.data['classes'][_class].update(classData)
+                self.data['parameters'].update(parameters)
 
     def __repr__(self):
         data = dict((k,dict(v)) for k,v in self.data.iteritems())
@@ -121,5 +127,4 @@ class IeoEnc(object):
 
 def main():
     enc = IeoEnc(sys.argv[1])
-#     enc = IeoEnc('rognoni.segreterie')
     print enc

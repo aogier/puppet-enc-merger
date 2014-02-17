@@ -4,9 +4,10 @@ from sqlalchemy.sql.schema import Table, Column, ForeignKey
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Integer
+import uuid
 
 from local import db_uri
-import uuid
+from enc.plugins import EncPlugin
 
 engine = create_engine(db_uri)
 
@@ -18,26 +19,9 @@ session = Session()
 calendars_uuid = uuid.UUID('9eef4d4b-7b49-4364-85fe-84337e81af86')
 uriPrefix = 'https://calendars.ieo.eu/caldav.php/%s'
 
-from enc import plugins
-
-class CalendarPlugin(object):
+class CalendarPlugin(EncPlugin):
     
     __puppet_class__ = 'ieo::classes::calendar::client' 
-    
-    class __metaclass__(type):
-        '''
-        Maintain couple of global plugin registries.
-        
-        If called whitin Mafreader class creation, then update global
-        _fileFormats registry.
-        If called whitin a subclass creation, then update local
-        _decoders registry.
-        '''
-        def __new__(cls, name, bases, _dict):
-            _type = type.__new__(cls, name, bases, _dict)
-#             logger.debug('registering file format: %s' % name)
-            plugins.append(_type)
-            return _type
     
     def __init__(self, nodename, data):
         self.nodename = nodename
@@ -56,7 +40,7 @@ class CalendarPlugin(object):
                     ('calendar-main-in-composite', True),
                     ('cache-enabled', False),
                     ('type', wrap('caldav')),
-                    ))
+                    ))                
         out = {}
         for collection in collections:
             parm = dict(defaults)
@@ -92,5 +76,5 @@ class CalendarPlugin(object):
         return set(collections)
 
 # avoid circular dependencies
-from enc.calendars.models import User, Calendar
+from enc.plugins.calendars.models import User, Calendar
         
