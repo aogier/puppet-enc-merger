@@ -1,24 +1,25 @@
-import xmlrpclib
-import yaml
-import re
 import collections
-import sys
-# plugins = []
-
 import logging
-from stevedore import driver
+import re
+import sys
+import xmlrpclib
 
+from stevedore import driver
+import yaml
+
+from local import xmlrpc_uri, remote
+
+
+# plugins = []
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT)
-
 logger = logging.getLogger('enc')
 logger.setLevel(logging.DEBUG)
 
-from local import xmlrpc_uri, remote
 wikiRoot = 'PuppetClasses'
 
 # plugin registration
-from enc.plugins.calendars import CalendarPlugin
+# from enc.plugins.calendars import CalendarPlugin
 
 apiservers = []
 

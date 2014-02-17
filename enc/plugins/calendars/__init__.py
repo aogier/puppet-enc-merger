@@ -1,27 +1,23 @@
-from sqlalchemy.engine import create_engine
-from sqlalchemy.ext.declarative.api import declarative_base
-from sqlalchemy.sql.schema import Table, Column, ForeignKey
-from sqlalchemy.orm.session import sessionmaker
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql.sqltypes import Integer
 import uuid
 
-from local import db_uri
+from sqlalchemy.engine import create_engine
+from sqlalchemy.ext.declarative.api import declarative_base
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm.session import sessionmaker
+from sqlalchemy.sql.schema import Table, Column, ForeignKey
+from sqlalchemy.sql.sqltypes import Integer
+
 from enc.plugins import EncPlugin
+from enc.plugins.calendars.models import User, Calendar, session
 
-engine = create_engine(db_uri)
 
-Base = declarative_base()
-Session = sessionmaker(bind=engine)
-
-session = Session()
-
+# TODO: config ?
 calendars_uuid = uuid.UUID('9eef4d4b-7b49-4364-85fe-84337e81af86')
 uriPrefix = 'https://calendars.ieo.eu/caldav.php/%s'
 
 class CalendarPlugin(EncPlugin):
     
-    __puppet_class__ = 'ieo::classes::calendar::client' 
+#     __puppet_class__ = 'ieo::classes::calendar::client' 
     
     def __init__(self, nodename, data):
         self.nodename = nodename
@@ -74,7 +70,3 @@ class CalendarPlugin(EncPlugin):
                         if isinstance(x, Calendar)] 
         # return a set
         return set(collections)
-
-# avoid circular dependencies
-from enc.plugins.calendars.models import User, Calendar
-        

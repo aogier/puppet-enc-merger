@@ -4,10 +4,24 @@ Created on 13/feb/2014
 @author: oggei
 '''
 
-from sqlalchemy.sql.schema import Table, Column, ForeignKey
+from sqlalchemy.engine import create_engine
+from sqlalchemy.ext.declarative.api import declarative_base
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm.session import sessionmaker
+from sqlalchemy.sql.schema import Table, Column, ForeignKey
 from sqlalchemy.sql.sqltypes import Integer
-from enc.plugins.calendars import Base, engine
+
+from local import db_uri
+
+
+# from enc.plugins.calendars import Base, engine
+engine = create_engine(db_uri)
+
+
+Base = declarative_base()
+Session = sessionmaker(bind=engine)
+
+session = Session()
 
 # many to many association tables
 grants_table = Table('grants', Base.metadata,
