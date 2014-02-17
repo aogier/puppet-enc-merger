@@ -38,7 +38,7 @@ setup(
               ],
 
     data_files = [
-                  ('etc/ieo_enc', ['enc/config/files/enc.cfg']),
+                  ('etc/ieo_enc', ['.placeholder']),
                   ],
 
     packages=find_packages(),

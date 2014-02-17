@@ -11,8 +11,9 @@ from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.sql.schema import Table, Column, ForeignKey
 from sqlalchemy.sql.sqltypes import Integer
 
-from local import db_uri
-
+# from local import db_uri
+from enc import config
+db_uri = config.get('ieo::classes::calendar::client', 'db_uri')
 
 # from enc.plugins.calendars import Base, engine
 engine = create_engine(db_uri)
