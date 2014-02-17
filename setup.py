@@ -37,6 +37,10 @@ setup(
     provides=['ieo_enc',
               ],
 
+    data_files = [
+                  ('etc/ieo_enc', ['enc/config/files/enc.cfg']),
+                  ],
+
     packages=find_packages(),
     include_package_data=True,
     install_requires = ['PyYAML==3.10',

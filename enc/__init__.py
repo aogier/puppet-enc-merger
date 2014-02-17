@@ -7,8 +7,7 @@ import xmlrpclib
 from stevedore import driver
 import yaml
 
-from local import xmlrpc_uri, remote
-
+from config import config
 
 # plugins = []
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -59,6 +58,7 @@ class XmlRpcApiServer(ApiServer):
     
     def __init__(self, uri):
         super(XmlRpcApiServer, self).__init__(uri)
+        logger.debug('called with uri: %s' % uri)
         self.xmlrpc = xmlrpclib.ServerProxy(self.uri)
     
     def getNode(self, uri):
@@ -81,9 +81,7 @@ class IeoEnc(object):
     def __init__(self, nodename):
         logger.debug('called for node %s' % nodename)
         domainParts = reversed(nodename.split('.'))
-        
-        self.api = XmlRpcApiServer(remote['xmlrpc'])
-        
+        self.api = XmlRpcApiServer(config.get('main', 'start'))        
         uri = ''
         for domainPart in domainParts:
             uri = '/'.join([uri, domainPart])  
