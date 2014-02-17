@@ -8,8 +8,15 @@ import os
 import ConfigParser
 import pkg_resources
 import shutil
+import sys
 
-config_path = os.path.join(os.environ.get('VIRTUAL_ENV', '/'), 'etc/ieo_enc', 'enc.cfg')
+try:
+    getattr(sys, 'real_prefix')
+    prefix = sys.prefix
+except:
+    prefix = '/'
+
+config_path = os.path.join(prefix, 'etc/ieo_enc', 'enc.cfg')
 
 if not os.path.exists(config_path):
     template = pkg_resources.resource_filename('enc.config', 'files/enc.cfg')
