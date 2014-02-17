@@ -111,7 +111,11 @@ class IeoEnc(object):
                 except RuntimeError:
                     continue
                 logger.debug('executing plugin %s ...' % plugin)
-                classData, parameters = plugin.driver.execute()
+                try:
+                    classData, parameters = plugin.driver.execute()
+                except:
+                    logger.warn('plugin %s failed' % plugin.driver)
+                    continue
                 self.data['classes'][_class].update(classData)
                 self.data['parameters'].update(parameters)
 
