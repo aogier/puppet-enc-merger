@@ -42,8 +42,7 @@ class ApiServer(object):
 
     def __init__(self, uri):
         self.uri = uri
-        self.logger = logging.getLogger('%s api server' % self.__type__)
-        self.logger.setLevel(logging.DEBUG)
+        self.logger = logger.getChild('api (%s)' % self.__type__)
     
     def getNode(self, uri):
         raise Exception, 'not implemented'

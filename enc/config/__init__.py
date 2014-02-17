@@ -14,7 +14,10 @@ config_path = os.path.join(os.environ.get('VIRTUAL_ENV', '/'), 'etc/ieo_enc', 'e
 if not os.path.exists(config_path):
     template = pkg_resources.resource_filename('enc.config', 'files/enc.cfg')
     os.umask(0077)
-    shutil.copyfile(template, config_path)
+    try:
+        shutil.copyfile(template, config_path)
+    except:
+        pass
 
 config = ConfigParser.SafeConfigParser()
 config.read(['dev.cfg', config_path])
