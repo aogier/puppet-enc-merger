@@ -15,7 +15,7 @@ class DashboardFactsPlugin(FactsPlugin):
         self.command = config.get(self.__type__, 'command')
 
     def execute(self):
-        data = subprocess.check_output(self.command)
+        data = subprocess.check_output([self.command, self.uri])
         out = yaml.load(data)
         return out
 
