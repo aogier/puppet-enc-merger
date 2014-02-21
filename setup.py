@@ -57,7 +57,8 @@ setup(
                                             'ieo::classes::calendar::client = enc.plugins.data.calendars:CalendarPlugin'
                                             ],
                   'eu.ieo.puppet.facts': [
-                                            'ieo::facts::trac = enc.plugins.facts.trac:TracFactsPlugin'
+                                            'ieo::facts::trac = enc.plugins.facts.trac:TracFactsPlugin',
+                                            'puppet::dashboard = enc.plugins.facts.dashboard:DashboardFactsPlugin',
                                             ],
     },
 
