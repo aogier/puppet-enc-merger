@@ -43,6 +43,8 @@ class IeoEnc(object):
             data = facts.driver.execute()
             for key in 'classes', 'parameters', 'environment':
                 if data.get(key):
+                    if isinstance(data[key], list):
+                        data[key] = dict.fromkeys(data[key])
                     self.data[key].update((k,v or {}) for k,v in data[key].iteritems())
 #         logger.debug(self.data)
         if self.data.get('classes'):
