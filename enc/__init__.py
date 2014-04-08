@@ -27,34 +27,35 @@ class IeoEnc(object):
     def __init__(self, nodename):
         logger.debug('called for node %s' % nodename)
 #         domainParts = reversed(nodename.split('.'))
-        
+
         for factsPlugin in config.get('main', 'facts').split(','):
             logger.debug ('loading facts from %s' % factsPlugin)
             try:
                 facts = driver.DriverManager(
-                                             namespace = 'eu.ieo.puppet.facts',
-                                             name = factsPlugin,
+                                             namespace='eu.ieo.puppet.facts',
+                                             name=factsPlugin,
                                              invoke_on_load=True,
                                              invoke_args=([nodename]),
                                              )
-            except (RuntimeError, ), e:
+            except (RuntimeError,), e:
                 raise
-            
+
             data = facts.driver.execute()
-            for key in 'classes', 'parameters', 'environment':
+            for key in 'classes', 'parameters':
                 if data.get(key):
                     if isinstance(data[key], list):
                         data[key] = dict.fromkeys(data[key])
-                    self.data[key].update((k,v or {}) for k,v in data[key].iteritems())
+                    self.data[key].update((k, v or {}) for k, v in data[key].iteritems())
+            self.data['environment'] = data.get('environment', 'production')
 #         logger.debug(self.data)
         if self.data.get('classes'):
-            
+
             for _class in self.data['classes']:
                 logger.debug('searching plugin for class %s ...' % _class)
                 try:
                     plugin = driver.DriverManager(
-                                                  namespace = 'eu.ieo.puppet.classes',
-                                                  name = _class,
+                                                  namespace='eu.ieo.puppet.classes',
+                                                  name=_class,
                                                   invoke_on_load=True,
                                                   invoke_args=(nodename, self.data),
                                                   )
@@ -71,7 +72,7 @@ class IeoEnc(object):
                 self.data['parameters'].update(parameters)
 
     def __repr__(self):
-        data = dict((k,dict(v)) for k,v in self.data.iteritems())
+        data = dict((k, dict(v)) for k, v in self.data.iteritems())
         return yaml.dump(data,
                          default_flow_style=False,
                          explicit_start=True,
