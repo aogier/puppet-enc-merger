@@ -46,7 +46,8 @@ class IeoEnc(object):
                     if isinstance(data[key], list):
                         data[key] = dict.fromkeys(data[key])
                     self.data[key].update((k, v or {}) for k, v in data[key].iteritems())
-            self.data['environment'] = data.get('environment', 'production')
+#             self.data['environment'] =
+            self.environment = data.get('environment', 'production')
 #         logger.debug(self.data)
         if self.data.get('classes'):
 
@@ -73,6 +74,7 @@ class IeoEnc(object):
 
     def __repr__(self):
         data = dict((k, dict(v)) for k, v in self.data.iteritems())
+        data['environment'] = self.environment
         return yaml.dump(data,
                          default_flow_style=False,
                          explicit_start=True,
