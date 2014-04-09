@@ -66,8 +66,8 @@ class IeoEnc(object):
                 logger.debug('executing plugin %s ...' % plugin.driver)
                 try:
                     classData, parameters = plugin.driver.execute()
-                except:
-                    logger.warn('plugin %s failed' % plugin.driver)
+                except Exception, e:
+                    logger.warn('plugin %s failed - %s' % (plugin.driver, e))
                     continue
                 self.data['classes'][_class].update(classData)
                 self.data['parameters'].update(parameters)
