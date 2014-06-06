@@ -5,6 +5,8 @@ Created on 17/feb/2014
 @author: oggei
 '''
 
+# require libpq-dev, libyaml-dev
+
 from setuptools import setup, find_packages
 
 setup(
