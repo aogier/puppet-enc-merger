@@ -49,7 +49,7 @@ setup(
     install_requires=['PyYAML==3.10',
                         'SQLAlchemy==0.9.2',
                         'psycopg2==2.5.2',
-                        'stevedore==0.14.1',
+                        'stevedore==1.32.0',
                         ],
     entry_points={
                   'console_scripts': [
