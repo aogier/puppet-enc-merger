@@ -48,7 +48,7 @@ setup(
     include_package_data=True,
     install_requires=['PyYAML==3.10',
                         'SQLAlchemy==0.9.2',
-                        'psycopg2==2.5.2',
+                        'psycopg2==2.8.6',
                         'stevedore==0.14.1',
                         ],
     entry_points={
