@@ -46,7 +46,7 @@ setup(
 
     packages=find_packages(),
     include_package_data=True,
-    install_requires=['PyYAML==3.10',
+    install_requires=['PyYAML==5.3.1',
                         'SQLAlchemy==0.9.2',
                         'psycopg2==2.5.2',
                         'stevedore==0.14.1',
